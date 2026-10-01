@@ -41,6 +41,8 @@ Prefer these over remembered examples: the APIs change between major versions.
 4. Install: `npm install lucide-react clsx zod @tanstack/react-query @tanstack/react-form` (+ `@tanstack/react-table` when the app has tables)
 5. Add to `compilerOptions` in `tsconfig.app.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`
 6. Delete the template's demo content (`App.css`, logos, counter)
+7. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
+8. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
 
 ## Project structure
 
@@ -70,7 +72,8 @@ src/
 
 - No `any`; use `unknown` and narrow (ideally with a Zod schema)
 - Types come from Zod schemas where data has a schema: `type Todo = z.infer<typeof todoSchema>`; don't write a duplicate interface
-- Props typed with a `type XProps = {...}` next to the component; no `React.FC`
+- Object types (props, variables, options) are `interface`s, enforced by `@typescript-eslint/consistent-type-definitions`: `interface TodoItemProps {...}` next to the component; no `React.FC`
+- Use `type` for unions, mapped types and `z.infer` results
 - `import type` for type-only imports (enforced by ESLint)
 - No non-null assertions (`!`) or `as` casts to silence errors; fix the type instead
 

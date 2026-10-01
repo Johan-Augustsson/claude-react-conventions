@@ -1,6 +1,6 @@
 {
   "name": "react-conventions",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Shared React conventions: TypeScript, Tailwind, Lucide, Zod, TanStack Query/Form/Table, ESLint and Prettier",
   "author": {
     "name": "Johan Augustsson"
