@@ -1,7 +1,7 @@
 {
   "name": "react-conventions",
-  "version": "1.0.0",
-  "description": "Shared React + Vite conventions, ESLint and Prettier setup for all React repos",
+  "version": "2.0.0",
+  "description": "Shared React conventions: TypeScript, Tailwind, Lucide, Zod, TanStack Query/Form/Table, ESLint and Prettier",
   "author": {
     "name": "Johan Augustsson"
   }

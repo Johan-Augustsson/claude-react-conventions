@@ -8,7 +8,7 @@
     {
       "name": "react-conventions",
       "source": "./plugins/react-conventions",
-      "description": "Shared React + Vite conventions, ESLint and Prettier setup for all React repos"
+      "description": "Shared React conventions: TypeScript, Tailwind, Lucide, Zod, TanStack Query/Form/Table, ESLint and Prettier"
     }
   ]
 }

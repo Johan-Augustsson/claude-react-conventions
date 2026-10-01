@@ -1,6 +1,8 @@
 # claude-react-conventions
 
-Shared React conventions for Claude Code, packaged as a plugin marketplace. One place to maintain React, ESLint and Prettier conventions used across all React repos.
+Shared React conventions for Claude Code, packaged as a plugin marketplace. One place to maintain React conventions used across all React repos.
+
+**Stack:** Vite, React, TypeScript, Tailwind CSS v4, Lucide icons, Zod, TanStack Query, TanStack Form, TanStack Table v9, ESLint 9, Prettier.
 
 ## Contents
 
