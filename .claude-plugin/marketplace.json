@@ -1,0 +1,14 @@
+{
+  "name": "react-conventions",
+  "description": "Shared React conventions for Claude Code",
+  "owner": {
+    "name": "Johan Augustsson"
+  },
+  "plugins": [
+    {
+      "name": "react-conventions",
+      "source": "./plugins/react-conventions",
+      "description": "Shared React + Vite conventions, ESLint and Prettier setup for all React repos"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "react-conventions",
+  "version": "1.0.0",
+  "description": "Shared React + Vite conventions, ESLint and Prettier setup for all React repos",
+  "author": {
+    "name": "Johan Augustsson"
+  }
+}
