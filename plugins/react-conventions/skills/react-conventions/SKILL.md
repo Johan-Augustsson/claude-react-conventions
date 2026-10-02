@@ -22,6 +22,9 @@ Follow these conventions for all React code. Repo-specific instructions in the r
 | Forms | `@tanstack/react-form` + Zod schemas |
 | Tables / data grids | `@tanstack/react-table` (v9) |
 | Lint / format | ESLint 9 + Prettier (templates in `templates/`) |
+| Drag and drop | `@dnd-kit/core` + `@dnd-kit/sortable` (keyboard and screen reader support built in) |
+| Markdown rendering | `react-markdown` + `remark-gfm` (never `dangerouslySetInnerHTML`) |
+| Dates | `date-fns` (no heavy calendar/date-picker libraries; shadcn `Calendar` for date pickers) |
 | Package manager | npm |
 
 Don't add other libraries for these concerns (no other UI kits, icon sets, form, validation or data-fetching libraries) without asking.
