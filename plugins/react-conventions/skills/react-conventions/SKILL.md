@@ -97,7 +97,7 @@ src/
 
 - Tailwind utility classes in JSX; no separate CSS files except `index.css` (Tailwind import, `@theme` tokens, base styles)
 - Design tokens (colors, fonts, spacing additions) in `@theme` in `index.css`, not hard-coded hex values in classes
-- Conditional and merged classes with `cn()` from `@/lib/utils` (clsx + tailwind-merge); don't build class names by string concatenation (`text-${color}-500` breaks Tailwind's scanner)
+- Conditional and merged classes with `cn()` from `@/lib/utils` (shadcn sets this up; current versions use the `cn` package, older ones clsx + tailwind-merge); don't build class names by string concatenation (`text-${color}-500` breaks Tailwind's scanner)
 - Colors from the shadcn theme tokens (`bg-background`, `text-muted-foreground`, `border-border`, ...), not raw palette colors, so dark mode and theming work
 - Repeated class combinations become a component, not `@apply`
 - Class order is handled by `prettier-plugin-tailwindcss`; don't sort by hand
@@ -222,6 +222,16 @@ Rules for all changes:
 - `npm run typecheck`, `npm run lint` and `npm run build` must pass before committing
 - Don't disable lint rules or use `@ts-expect-error` unless unavoidable, and always with a comment explaining why
 - Don't change the shared ESLint/Prettier config in a single repo; change it in the conventions repo instead
+
+## GitHub Actions (Claude)
+
+Repos that use Claude in GitHub Actions start from the workflow templates in `templates/github-workflows/`:
+
+- `claude.yml` - responds to `@claude` in issues and PRs. Its `--allowedTools` must include every CLI the setup steps need, or Claude gets stuck mid-task: `npm install/remove/ci/run`, `npx eslint`, `npx prettier`, `npx tsc`, `npx vite` (the router plugin generates `routeTree.gen.ts` when Vite runs), `npx tsr` and `npx shadcn`
+- `claude-code-review.yml` - reviews PRs with this skill loaded
+- `ci.yml` - typecheck, lint, format check and build on PRs and `main`; skips until `package.json` exists
+
+Copy them to `.github/workflows/` and adjust repo-specific parts (comments, URLs). The Claude GitHub App can't edit workflow files, so workflow changes are always made by a person.
 
 ## Reviewing React code
 

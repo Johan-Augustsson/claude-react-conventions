@@ -1,6 +1,6 @@
 {
   "name": "react-conventions",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Shared React conventions: TypeScript, Tailwind, shadcn/ui, Lucide, Zod, TanStack Router/Query/Form/Table, ESLint and Prettier",
   "author": {
     "name": "Johan Augustsson"

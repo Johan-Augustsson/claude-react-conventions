@@ -8,6 +8,7 @@ Shared React conventions for Claude Code, packaged as a plugin marketplace. One 
 
 - `plugins/react-conventions/skills/react-conventions/SKILL.md`: the conventions
 - `plugins/react-conventions/skills/react-conventions/templates/`: shared `eslint.config.js`, `.prettierrc.json` and `.prettierignore`
+- `plugins/react-conventions/skills/react-conventions/templates/github-workflows/`: `claude.yml` (with the allowed tools Claude needs), `claude-code-review.yml` and `ci.yml`
 
 ## Use in a repo
 
