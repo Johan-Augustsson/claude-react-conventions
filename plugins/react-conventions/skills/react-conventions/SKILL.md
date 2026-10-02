@@ -227,11 +227,13 @@ Rules for all changes:
 
 Repos that use Claude in GitHub Actions start from the workflow templates in `templates/github-workflows/`:
 
-- `claude.yml` - responds to `@claude` in issues and PRs. Its `--allowedTools` must include every CLI the setup steps need, or Claude gets stuck mid-task: `npm install/remove/ci/run`, `npx eslint`, `npx prettier`, `npx tsc`, `npx vite` (the router plugin generates `routeTree.gen.ts` when Vite runs), `npx tsr` and `npx shadcn`
+- `claude.yml` - responds to `@claude` in issues and PRs. Its `--allowedTools` must include every CLI the setup steps need, or Claude gets stuck mid-task: `npm install/remove/ci/run`, `npx eslint`, `npx prettier`, `npx tsc`, `npx vite` (the router plugin generates `routeTree.gen.ts` when Vite runs), `npx tsr`, `npx shadcn`, and `gh pr create`/`gh pr view` so Claude can open the PR itself
 - `claude-code-review.yml` - reviews PRs with this skill loaded
 - `ci.yml` - typecheck, lint, format check and build on PRs and `main`; skips until `package.json` exists
 
-Copy them to `.github/workflows/` and adjust repo-specific parts (comments, URLs). The Claude GitHub App can't edit workflow files, so workflow changes are always made by a person.
+Copy them to `.github/workflows/` and adjust repo-specific parts (comments, URLs).
+
+When Claude implements an issue in Actions and typecheck, lint, format check and build all pass, it pushes the branch and opens the PR with `gh pr create --base main` (title without the `[Feature]: ` prefix, body starting with `Closes #<issue>`, then summary, verification, what wasn't verified, needed workflow changes). If a check fails or it's blocked, it opens no PR and explains on the issue instead. Put this rule in the repo's `CLAUDE.md` too, since the `@claude` run reads it first. The Claude GitHub App can't edit workflow files, so workflow changes are always made by a person.
 
 ## Reviewing React code
 

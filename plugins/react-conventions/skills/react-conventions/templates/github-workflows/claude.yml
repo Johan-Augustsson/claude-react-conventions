@@ -44,8 +44,8 @@ jobs:
           plugin_marketplaces: 'https://github.com/Johan-Augustsson/claude-react-conventions.git'
           plugins: 'react-conventions@react-conventions'
 
-          # Let Claude install dependencies, add shadcn components, generate routes, lint and build
-          claude_args: '--allowedTools "Bash(npm install*),Bash(npm remove*),Bash(npm ci*),Bash(npm run *),Bash(npm create vite*),Bash(npx eslint*),Bash(npx prettier*),Bash(npx tsc*),Bash(npx vite*),Bash(npx tsr*),Bash(npx shadcn*)"'
+          # Let Claude install dependencies, add shadcn components, generate routes, lint, build and open PRs
+          claude_args: '--allowedTools "Bash(npm install*),Bash(npm remove*),Bash(npm ci*),Bash(npm run *),Bash(npm create vite*),Bash(npx eslint*),Bash(npx prettier*),Bash(npx tsc*),Bash(npx vite*),Bash(npx tsr*),Bash(npx shadcn*),Bash(gh pr create*),Bash(gh pr view*)"'
 
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
