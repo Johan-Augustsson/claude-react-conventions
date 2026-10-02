@@ -2,12 +2,12 @@
 
 Shared React conventions for Claude Code, packaged as a plugin marketplace. One place to maintain React conventions used across all React repos.
 
-**Stack:** Vite, React, TypeScript, Tailwind CSS v4, Lucide icons, Zod, TanStack Query, TanStack Form, TanStack Table v9, ESLint 9, Prettier.
+**Stack:** Vite, React, TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Router, Lucide icons, Zod, TanStack Query, TanStack Form, TanStack Table v9, ESLint 9, Prettier.
 
 ## Contents
 
 - `plugins/react-conventions/skills/react-conventions/SKILL.md`: the conventions
-- `plugins/react-conventions/skills/react-conventions/templates/`: shared `eslint.config.js` and `.prettierrc.json`
+- `plugins/react-conventions/skills/react-conventions/templates/`: shared `eslint.config.js`, `.prettierrc.json` and `.prettierignore`
 
 ## Use in a repo
 

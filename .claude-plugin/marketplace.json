@@ -8,7 +8,7 @@
     {
       "name": "react-conventions",
       "source": "./plugins/react-conventions",
-      "description": "Shared React conventions: TypeScript, Tailwind, Lucide, Zod, TanStack Query/Form/Table, ESLint and Prettier"
+      "description": "Shared React conventions: TypeScript, Tailwind, shadcn/ui, Lucide, Zod, TanStack Router/Query/Form/Table, ESLint and Prettier"
     }
   ]
 }

@@ -1,6 +1,6 @@
 ---
 name: react-conventions
-description: Shared React conventions for all React repos - TypeScript, Tailwind, Lucide icons, Zod, TanStack Query/Form/Table, component structure, hooks, accessibility and ESLint/Prettier setup. Use when creating, changing or reviewing React code, setting up a new React project, or configuring ESLint/Prettier/Tailwind in a React repo.
+description: Shared React conventions for all React repos - TypeScript, Tailwind, shadcn/ui, Lucide icons, Zod, TanStack Router/Query/Form/Table, component structure, hooks, accessibility and ESLint/Prettier setup. Use when creating, changing or reviewing React code, setting up a new React project, or configuring ESLint/Prettier/Tailwind/shadcn/routing in a React repo.
 ---
 
 # React conventions
@@ -14,6 +14,8 @@ Follow these conventions for all React code. Repo-specific instructions in the r
 | Build | Vite + React, function components and hooks only |
 | Language | TypeScript (strict) - no `.js`/`.jsx` source files |
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
+| UI components | shadcn/ui (Radix base), copied into `src/components/ui` |
+| Routing | `@tanstack/react-router` (file-based, `@tanstack/router-plugin`) |
 | Icons | `lucide-react` |
 | Validation / schemas | `zod` (v4) |
 | Server / async state | `@tanstack/react-query` |
@@ -29,6 +31,7 @@ Don't add other libraries for these concerns (no other UI kits, icon sets, form,
 TanStack packages ship agent skills with version-correct API docs. Before using an API you're unsure about, read them from `node_modules`:
 
 - `node_modules/@tanstack/react-table/skills/*/SKILL.md` and `node_modules/@tanstack/table-core/skills/*/SKILL.md`
+- `node_modules/@tanstack/router-core/skills/router-core/*/SKILL.md` (navigation, path/search params, auth and guards, not-found, type safety) and `node_modules/@tanstack/router-plugin/skills/`
 - Check `node_modules/@tanstack/react-form/` and `node_modules/@tanstack/react-query/` for a `skills/` folder too
 
 Prefer these over remembered examples: the APIs change between major versions.
@@ -38,11 +41,13 @@ Prefer these over remembered examples: the APIs change between major versions.
 1. `npm create vite@latest <name> -- --template react-ts`
 2. The Vite template ships `oxlint`: remove it (`npm remove oxlint`, delete its config) and set up ESLint as described below
 3. Tailwind: `npm install tailwindcss @tailwindcss/vite`, add `tailwindcss()` to `plugins` in `vite.config.ts`, and replace `src/index.css` with `@import "tailwindcss";`
-4. Install: `npm install lucide-react clsx zod @tanstack/react-query @tanstack/react-form` (+ `@tanstack/react-table` when the app has tables)
-5. Add to `compilerOptions` in `tsconfig.app.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`
+4. Install: `npm install lucide-react zod @tanstack/react-query @tanstack/react-form` (+ `@tanstack/react-table` when the app has tables)
+5. Add to `compilerOptions` in `tsconfig.app.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`. In both `tsconfig.json` and `tsconfig.app.json` add `"paths": { "@/*": ["./src/*"] }`, and the matching alias in `vite.config.ts`: `resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } }`
 6. Delete the template's demo content (`App.css`, logos, counter)
-7. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
-8. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
+7. shadcn/ui: `npx shadcn@latest init -b radix -p nova -t vite -y --no-monorepo`, then `npm run format` (see UI components below)
+8. TanStack Router: `npm install @tanstack/react-router` and `npm install -D @tanstack/router-plugin`; add `tanstackRouter({ target: 'react', autoCodeSplitting: true })` to `plugins` in `vite.config.ts` **before** `react()` (see Routing below)
+9. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
+10. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
 
 ## Project structure
 
@@ -57,14 +62,17 @@ src/
       api.ts          # data access functions (fetch, localStorage, ...)
       queries.ts      # query key factory + queryOptions
       schemas.ts      # Zod schemas + inferred types
-  components/ui/      # shared, feature-agnostic components (Button, Input, ...)
-  lib/                # queryClient.ts, generic helpers (no feature logic)
-  App.tsx
+  routes/             # TanStack Router file-based routes (thin: compose feature components)
+  components/ui/      # shadcn/ui components (generated, kebab-case file names)
+  components/         # shared app components that aren't shadcn (AppSidebar.tsx, ...)
+  hooks/              # shared hooks (shadcn puts use-mobile.ts here)
+  lib/                # utils.ts (cn), queryClient.ts, generic helpers (no feature logic)
+  routeTree.gen.ts    # generated by the router plugin; never edit, commit it
   main.tsx
   index.css
 ```
 
-- One component per file; file name matches the component (PascalCase `.tsx`); hooks are camelCase with `use` prefix (`.ts`)
+- One component per file; file name matches the component (PascalCase `.tsx`); hooks are camelCase with `use` prefix (`.ts`). Exception: files generated by shadcn keep their kebab-case names
 - Named exports for components and hooks; default export only where a tool requires it
 - Features import from `components/ui` and `lib`, never from another feature's internals
 
@@ -89,10 +97,32 @@ src/
 
 - Tailwind utility classes in JSX; no separate CSS files except `index.css` (Tailwind import, `@theme` tokens, base styles)
 - Design tokens (colors, fonts, spacing additions) in `@theme` in `index.css`, not hard-coded hex values in classes
-- Conditional classes with `clsx`; don't build class names by string concatenation (`text-${color}-500` breaks Tailwind's scanner)
-- Repeated class combinations become a component in `components/ui`, not `@apply`
+- Conditional and merged classes with `cn()` from `@/lib/utils` (clsx + tailwind-merge); don't build class names by string concatenation (`text-${color}-500` breaks Tailwind's scanner)
+- Colors from the shadcn theme tokens (`bg-background`, `text-muted-foreground`, `border-border`, ...), not raw palette colors, so dark mode and theming work
+- Repeated class combinations become a component, not `@apply`
 - Class order is handled by `prettier-plugin-tailwindcss`; don't sort by hand
 - Support dark mode with `dark:` variants when the repo uses it
+
+## UI components (shadcn/ui)
+
+- Use shadcn components for UI primitives (Button, Input, Dialog, AlertDialog, DropdownMenu, Sheet, Sidebar, Card, ...) before building your own. They're accessible (Radix) and themed
+- Add with `npx shadcn@latest add <name>`, then run `npm run format` (shadcn writes its own code style)
+- Generated files in `src/components/ui/` may be adjusted (variants, styling) but not rewritten; keep them close to upstream so later `shadcn add` updates stay easy. The ESLint config relaxes a few rules for these files
+- Compose app-specific components (e.g. `AppSidebar`, `AccountMenu`) in `src/components/` or a feature folder, from shadcn parts
+- Destructive actions (delete) use `AlertDialog`; menus use `DropdownMenu`; mobile drawers use `Sheet` (the `Sidebar` component does this automatically)
+- Forms: shadcn `Input`/`Label`/`Button` for markup, TanStack Form for state and validation
+
+## Routing (TanStack Router)
+
+- File-based routes in `src/routes/` (`__root.tsx`, `index.tsx`, `workspaces/$workspaceId.tsx`, ...); the plugin generates `src/routeTree.gen.ts`
+- Use `createHashHistory()` when the app is served from static hosting without SPA fallback (e.g. GitHub Pages); otherwise browser history
+- Register the router type (`declare module '@tanstack/react-router' { interface Register { router: typeof router } }`) so `Link`, `useParams` and `navigate` are type-safe
+- Navigate with `<Link to="..." params={...}>` and `useNavigate()`; never build URL strings by hand
+- Validate search params with Zod via `validateSearch`
+- Route files stay thin: `loader`/`beforeLoad` and a component that composes feature components. Business logic stays in features
+- Auth guards in `beforeLoad` of a pathless layout route (e.g. `_authenticated.tsx`), redirecting with `throw redirect({ to: '/sign-in', search: { redirect: location.href } })`; pass the auth state via router `context`
+- Data loading: prefetch with `queryClient.ensureQueryData(...)` in `loader` (pass `queryClient` via router context) and read with `useQuery`/`useSuspenseQuery` in components
+- Every app has a `notFoundComponent` on the root route
 
 ## Icons (Lucide)
 
@@ -156,7 +186,8 @@ src/
 
 ## Accessibility
 
-- Semantic HTML: `<button>` for actions, `<a>` for navigation, `<ul>/<li>` for lists, `<form>` for forms
+- Semantic HTML: `<button>` for actions, `<a>` for navigation (router `<Link>`), `<ul>/<li>` for lists, `<form>` for forms
+- Menus, dialogs and drawers come from shadcn (Radix handles focus trapping, Esc and arrow keys); don't hand-roll them
 - Every input has a `<label>` (visible, or `aria-label` for icon-only controls)
 - Everything usable with keyboard only; visible focus styles (`focus-visible:` utilities; never remove outlines without a replacement)
 - Sufficient color contrast; don't use color as the only signal
@@ -166,15 +197,16 @@ src/
 
 Lint rules live in config, not in prose. Use the templates in this skill's `templates/` folder:
 
-- `templates/eslint.config.js` - flat config: `typescript-eslint` (type-checked), `react-hooks`, `react-refresh`, `jsx-a11y`, `@tanstack/eslint-plugin-query`, `eslint-config-prettier`
+- `templates/eslint.config.js` - flat config: `typescript-eslint` (type-checked), `react-hooks`, `react-refresh`, `jsx-a11y`, `@tanstack/eslint-plugin-query`, `@tanstack/eslint-plugin-router`, `eslint-config-prettier`; relaxed rules for shadcn-generated files and route files
 - `templates/.prettierrc.json` - Prettier settings with `prettier-plugin-tailwindcss`
+- `templates/.prettierignore` - ignores the generated `src/routeTree.gen.ts`
 
 When setting up a repo:
 
-1. Copy both templates to the repo root
+1. Copy the templates to the repo root
 2. Install dev dependencies. ESLint is pinned to v9 because `eslint-plugin-jsx-a11y` doesn't support ESLint 10 yet:
    ```
-   npm install -D eslint@^9 @eslint/js@^9 globals typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-jsx-a11y @tanstack/eslint-plugin-query eslint-config-prettier prettier prettier-plugin-tailwindcss
+   npm install -D eslint@^9 @eslint/js@^9 globals typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-jsx-a11y @tanstack/eslint-plugin-query @tanstack/eslint-plugin-router eslint-config-prettier prettier prettier-plugin-tailwindcss
    ```
 3. npm scripts:
    ```json
@@ -197,6 +229,6 @@ When reviewing, check in this order:
 
 1. Bugs: incorrect state updates, missing/unstable keys, stale closures, effects with wrong dependencies, unhandled query/mutation errors
 2. Type safety: `any`, unsafe casts, external data not validated with Zod
-3. Conventions above: structure, library usage (Query/Form/Table/Zod/Lucide/Tailwind), derived state
+3. Conventions above: structure, library usage (shadcn/Router/Query/Form/Table/Zod/Lucide/Tailwind), derived state
 4. Accessibility
 5. Readability; skip pure style nits that Prettier handles
