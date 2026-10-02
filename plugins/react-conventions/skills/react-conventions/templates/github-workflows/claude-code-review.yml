@@ -36,6 +36,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Review PRs that Claude opened itself (author: claude[bot])
+          allowed_bots: claude
           plugin_marketplaces: |
             https://github.com/anthropics/claude-code.git
             https://github.com/Johan-Augustsson/claude-react-conventions.git
