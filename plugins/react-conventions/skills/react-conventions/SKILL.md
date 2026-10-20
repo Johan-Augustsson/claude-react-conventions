@@ -52,7 +52,7 @@ Before scaffolding a new project, ask the user which optional parts to include w
 1. **App libraries** (multi-select): React Router, TanStack Query, TanStack Form
 2. **Feature libraries** (multi-select): TanStack Table, dnd-kit (drag and drop), react-markdown + remark-gfm, date-fns
 3. **GitHub workflows** (multi-select): CI (`ci.yml`), Claude on issues/PRs (`claude.yml`), Claude code review (`claude-code-review.yml`)
-4. **After setup** (single-select): keep using this plugin (add the `Conventions synced` line to `CLAUDE.md`), or remove it afterwards (write a short summary of the conventions that apply into `CLAUDE.md` instead)
+4. **After setup** (single-select): keep using this plugin (add the `Conventions synced` line to `CLAUDE.md`, so later changelog entries can be applied), or remove it afterwards (no sync line). Both get the `CLAUDE.md` summary from the last setup step
 
 Always included, not asked: Vite, React, TypeScript, Tailwind, shadcn/ui, Lucide, Zod, ESLint, Prettier. If React Router is chosen and the hosting isn't clear (static hosting without SPA fallback, e.g. GitHub Pages, needs `createHashRouter`), ask that as a follow-up.
 
@@ -70,6 +70,12 @@ Then follow the steps below for the chosen parts only: skip installs, setup step
 8. React Router (if chosen): `npm install react-router-dom`; create the router in `src/router.tsx` and render `<RouterProvider router={router} />` in `main.tsx` (see Routing below)
 9. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
 10. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
+11. Last step: write `CLAUDE.md` in the repo root (merge into an existing one) with a short summary of the conventions, so they keep working without this plugin. Cover only the parts chosen for this project, about 30 lines:
+    - Stack: the libraries in use, and "don't add libraries for these concerns without asking"
+    - Project structure (the tree from Project structure below, trimmed to what exists) and "features never import another feature's internals"
+    - Key rules: no `any`, types from Zod schemas, Zod at trust boundaries; server state in TanStack Query (never copied into `useState`, no fetching in `useEffect`); forms with TanStack Form; shadcn components before custom ones; `cn()` and theme tokens for styling; routing rules (data router, `generatePath`, params parsed with Zod); accessibility basics
+    - Commands: `npm run typecheck`, `lint`, `format`, `build`, and that they must pass before committing
+    - `Conventions synced: YYYY-MM-DD` only if the plugin is kept
 
 ## Project structure
 
