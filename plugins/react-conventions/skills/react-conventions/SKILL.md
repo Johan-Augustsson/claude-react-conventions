@@ -45,14 +45,29 @@ Prefer these over remembered examples: the APIs change between major versions.
 
 ## Project setup
 
+### Choose what to include
+
+Before scaffolding a new project, ask the user which optional parts to include with the `AskUserQuestion` tool, in one call with these four questions. Use `multiSelect: true` for the first three and give each option a one-line description. Skip a question only when the user's request already answers it.
+
+1. **App libraries** (multi-select): React Router, TanStack Query, TanStack Form
+2. **Feature libraries** (multi-select): TanStack Table, dnd-kit (drag and drop), react-markdown + remark-gfm, date-fns
+3. **GitHub workflows** (multi-select): CI (`ci.yml`), Claude on issues/PRs (`claude.yml`), Claude code review (`claude-code-review.yml`)
+4. **After setup** (single-select): keep using this plugin (add the `Conventions synced` line to `CLAUDE.md`), or remove it afterwards (write a short summary of the conventions that apply into `CLAUDE.md` instead)
+
+Always included, not asked: Vite, React, TypeScript, Tailwind, shadcn/ui, Lucide, Zod, ESLint, Prettier. If React Router is chosen and the hosting isn't clear (static hosting without SPA fallback, e.g. GitHub Pages, needs `createHashRouter`), ask that as a follow-up.
+
+Then follow the steps below for the chosen parts only: skip installs, setup steps and conventions for parts that weren't chosen, and remove what belongs to them from the templates (e.g. the `@tanstack/eslint-plugin-query` import and config in `eslint.config.js` when TanStack Query isn't used). Don't add an unchosen library later without asking.
+
+### Steps
+
 1. `npm create vite@latest <name> -- --template react-ts`
 2. The Vite template ships `oxlint`: remove it (`npm remove oxlint`, delete its config) and set up ESLint as described below
 3. Tailwind: `npm install tailwindcss @tailwindcss/vite`, add `tailwindcss()` to `plugins` in `vite.config.ts`, and replace `src/index.css` with `@import "tailwindcss";`
-4. Install: `npm install lucide-react zod @tanstack/react-query @tanstack/react-form` (+ `@tanstack/react-table` when the app has tables)
+4. Install: `npm install lucide-react zod` plus the chosen libraries (`@tanstack/react-query`, `@tanstack/react-form`, `@tanstack/react-table`, `@dnd-kit/core @dnd-kit/sortable`, `react-markdown remark-gfm`, `date-fns`)
 5. Add to `compilerOptions` in `tsconfig.app.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`. In both `tsconfig.json` and `tsconfig.app.json` add `"paths": { "@/*": ["./src/*"] }`, and the matching alias in `vite.config.ts`: `resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } }`
 6. Delete the template's demo content (`App.css`, logos, counter)
 7. shadcn/ui: `npx shadcn@latest init -b radix -p nova -t vite -y --no-monorepo`, then `npm run format` (see UI components below)
-8. React Router: `npm install react-router-dom`; create the router in `src/router.tsx` and render `<RouterProvider router={router} />` in `main.tsx` (see Routing below)
+8. React Router (if chosen): `npm install react-router-dom`; create the router in `src/router.tsx` and render `<RouterProvider router={router} />` in `main.tsx` (see Routing below)
 9. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
 10. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
 
@@ -241,7 +256,7 @@ Repos that use Claude in GitHub Actions start from the workflow templates in `te
 - `claude-code-review.yml` - reviews PRs with this skill loaded
 - `ci.yml` - typecheck, lint, format check and build on PRs and `main`; skips until `package.json` exists
 
-Copy them to `.github/workflows/` and adjust repo-specific parts (comments, URLs).
+Copy the ones chosen during setup to `.github/workflows/` and adjust repo-specific parts (comments, URLs).
 
 When Claude implements an issue in Actions and typecheck, lint, format check and build all pass, it pushes the branch and opens the PR with `gh pr create --base main` (title without the `[Feature]: ` prefix, body starting with `Closes #<issue>`, then summary, verification, what wasn't verified, needed workflow changes). If a check fails or it's blocked, it opens no PR and explains on the issue instead. Put this rule in the repo's `CLAUDE.md` too, since the `@claude` run reads it first. The Claude GitHub App can't edit workflow files, so workflow changes are always made by a person.
 
@@ -249,7 +264,7 @@ When Claude implements an issue in Actions and typecheck, lint, format check and
 
 Existing repos don't change when these conventions change. `CHANGELOG.md` (next to this file) lists each change with what to do in an existing repo.
 
-- Every repo's `CLAUDE.md` has a line `Conventions synced: YYYY-MM-DD`. New projects get today's date
+- Every repo's `CLAUDE.md` has a line `Conventions synced: YYYY-MM-DD`. New projects that keep the plugin get today's date
 - When asked to sync or update a repo to the conventions, apply every changelog entry newer than that date, then update the date. A repo without the line hasn't synced yet: compare it with the conventions and ask before large migrations
 - Workflow files (`.github/workflows/`) can't be changed from GitHub Actions; list the needed changes in the PR instead
 

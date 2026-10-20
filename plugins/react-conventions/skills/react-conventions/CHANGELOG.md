@@ -6,6 +6,7 @@ Entries say what changed and what to do in an existing repo. Changes that only a
 
 ## 2026-10-20
 
+- **Project setup asks what to include:** optional libraries (React Router, TanStack Query/Form/Table, dnd-kit, react-markdown, date-fns), GitHub workflows and whether the plugin stays enabled. New projects only; nothing to migrate.
 - **Routing: TanStack Router → `react-router-dom` (data router).** Migrate:
   - `npm remove @tanstack/react-router @tanstack/router-plugin @tanstack/eslint-plugin-router` and `npm install react-router-dom`
   - Remove `tanstackRouter(...)` from `vite.config.ts`
