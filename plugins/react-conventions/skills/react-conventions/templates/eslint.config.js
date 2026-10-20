@@ -5,12 +5,11 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import pluginQuery from '@tanstack/eslint-plugin-query';
-import pluginRouter from '@tanstack/eslint-plugin-router';
 import prettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'src/routeTree.gen.ts']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -21,7 +20,6 @@ export default defineConfig([
       reactRefresh.configs.vite,
       jsxA11y.flatConfigs.recommended,
       pluginQuery.configs['flat/recommended'],
-      pluginRouter.configs['flat/recommended'],
     ],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -47,7 +45,7 @@ export default defineConfig([
     },
   },
   {
-    // Route files export `Route` objects, not only components
+    // Route modules export loaders and route config, not only components
     files: ['src/routes/**/*.{ts,tsx}'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },

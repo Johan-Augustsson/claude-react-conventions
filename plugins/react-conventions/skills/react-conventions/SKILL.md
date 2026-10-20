@@ -1,6 +1,6 @@
 ---
 name: react-conventions
-description: Shared React conventions for all React repos - TypeScript, Tailwind, shadcn/ui, Lucide icons, Zod, TanStack Router/Query/Form/Table, component structure, hooks, accessibility and ESLint/Prettier setup. Use when creating, changing or reviewing React code, setting up a new React project, or configuring ESLint/Prettier/Tailwind/shadcn/routing in a React repo.
+description: Shared React conventions for all React repos - TypeScript, Tailwind, shadcn/ui, Lucide icons, Zod, React Router, TanStack Query/Form/Table, component structure, hooks, accessibility and ESLint/Prettier setup. Use when creating, changing or reviewing React code, setting up a new React project, or configuring ESLint/Prettier/Tailwind/shadcn/routing in a React repo.
 ---
 
 # React conventions
@@ -13,15 +13,15 @@ Follow these conventions for all React code. Repo-specific instructions in the r
 |---|---|
 | Build | Vite + React, function components and hooks only |
 | Language | TypeScript (strict) - no `.js`/`.jsx` source files |
-| Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
+| Styling | Tailwind CSS via `@tailwindcss/vite` |
 | UI components | shadcn/ui (Radix base), copied into `src/components/ui` |
-| Routing | `@tanstack/react-router` (file-based, `@tanstack/router-plugin`) |
+| Routing | `react-router-dom` (data router: `createBrowserRouter` + `RouterProvider`) |
 | Icons | `lucide-react` |
-| Validation / schemas | `zod` (v4) |
+| Validation / schemas | `zod` |
 | Server / async state | `@tanstack/react-query` |
 | Forms | `@tanstack/react-form` + Zod schemas |
-| Tables / data grids | `@tanstack/react-table` (v9) |
-| Lint / format | ESLint 9 + Prettier (templates in `templates/`) |
+| Tables / data grids | `@tanstack/react-table` |
+| Lint / format | ESLint + Prettier (templates in `templates/`) |
 | Drag and drop | `@dnd-kit/core` + `@dnd-kit/sortable` (keyboard and screen reader support built in) |
 | Markdown rendering | `react-markdown` + `remark-gfm` (never `dangerouslySetInnerHTML`) |
 | Dates | `date-fns` (no heavy calendar/date-picker libraries; shadcn `Calendar` for date pickers) |
@@ -29,12 +29,16 @@ Follow these conventions for all React code. Repo-specific instructions in the r
 
 Don't add other libraries for these concerns (no other UI kits, icon sets, form, validation or data-fetching libraries) without asking.
 
+### Versions
+
+- New projects install the latest version of every package: `npm install <name>` without a version. Only pin when a known incompatibility forces it, and say why next to the command (see ESLint below)
+- Write code for the version that is installed, not the one you remember: check the major version in `package.json` before using a library's API, and when it's newer than what you know, read its docs (below, or the package's README/changelog in `node_modules`) first
+
 ### Up-to-date API docs
 
 TanStack packages ship agent skills with version-correct API docs. Before using an API you're unsure about, read them from `node_modules`:
 
 - `node_modules/@tanstack/react-table/skills/*/SKILL.md` and `node_modules/@tanstack/table-core/skills/*/SKILL.md`
-- `node_modules/@tanstack/router-core/skills/router-core/*/SKILL.md` (navigation, path/search params, auth and guards, not-found, type safety) and `node_modules/@tanstack/router-plugin/skills/`
 - Check `node_modules/@tanstack/react-form/` and `node_modules/@tanstack/react-query/` for a `skills/` folder too
 
 Prefer these over remembered examples: the APIs change between major versions.
@@ -48,7 +52,7 @@ Prefer these over remembered examples: the APIs change between major versions.
 5. Add to `compilerOptions` in `tsconfig.app.json`: `"strict": true`, `"noUncheckedIndexedAccess": true`. In both `tsconfig.json` and `tsconfig.app.json` add `"paths": { "@/*": ["./src/*"] }`, and the matching alias in `vite.config.ts`: `resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } }`
 6. Delete the template's demo content (`App.css`, logos, counter)
 7. shadcn/ui: `npx shadcn@latest init -b radix -p nova -t vite -y --no-monorepo`, then `npm run format` (see UI components below)
-8. TanStack Router: `npm install @tanstack/react-router` and `npm install -D @tanstack/router-plugin`; add `tanstackRouter({ target: 'react', autoCodeSplitting: true })` to `plugins` in `vite.config.ts` **before** `react()` (see Routing below)
+8. React Router: `npm install react-router-dom`; create the router in `src/router.tsx` and render `<RouterProvider router={router} />` in `main.tsx` (see Routing below)
 9. Add `.gitattributes` with `* text=auto eol=lf` so Prettier's LF line endings hold on Windows checkouts
 10. Don't run `npm create vite . --overwrite` in an existing repo: it deletes everything, including `.github/` and `.claude/`. Scaffold into a temp folder and copy the files over instead
 
@@ -65,12 +69,12 @@ src/
       api.ts          # data access functions (fetch, localStorage, ...)
       queries.ts      # query key factory + queryOptions
       schemas.ts      # Zod schemas + inferred types
-  routes/             # TanStack Router file-based routes (thin: compose feature components)
+  routes/             # route modules: component + loader (thin: compose feature components)
   components/ui/      # shadcn/ui components (generated, kebab-case file names)
   components/         # shared app components that aren't shadcn (AppSidebar.tsx, ...)
   hooks/              # shared hooks (shadcn puts use-mobile.ts here)
   lib/                # utils.ts (cn), queryClient.ts, generic helpers (no feature logic)
-  routeTree.gen.ts    # generated by the router plugin; never edit, commit it
+  router.tsx          # route tree (createBrowserRouter / createHashRouter)
   main.tsx
   index.css
 ```
@@ -115,17 +119,21 @@ src/
 - Destructive actions (delete) use `AlertDialog`; menus use `DropdownMenu`; mobile drawers use `Sheet` (the `Sidebar` component does this automatically)
 - Forms: shadcn `Input`/`Label`/`Button` for markup, TanStack Form for state and validation
 
-## Routing (TanStack Router)
+## Routing (React Router)
 
-- File-based routes in `src/routes/` (`__root.tsx`, `index.tsx`, `workspaces/$workspaceId.tsx`, ...); the plugin generates `src/routeTree.gen.ts`
-- Use `createHashHistory()` when the app is served from static hosting without SPA fallback (e.g. GitHub Pages); otherwise browser history
-- Register the router type (`declare module '@tanstack/react-router' { interface Register { router: typeof router } }`) so `Link`, `useParams` and `navigate` are type-safe
-- Navigate with `<Link to="..." params={...}>` and `useNavigate()`; never build URL strings by hand
-- Validate search params with Zod via `validateSearch`
-- Route files stay thin: `loader`/`beforeLoad` and a component that composes feature components. Business logic stays in features
-- Auth guards in `beforeLoad` of a pathless layout route (e.g. `_authenticated.tsx`), redirecting with `throw redirect({ to: '/sign-in', search: { redirect: location.href } })`; pass the auth state via router `context`
-- Data loading: prefetch with `queryClient.ensureQueryData(...)` in `loader` (pass `queryClient` via router context) and read with `useQuery`/`useSuspenseQuery` in components
-- Every app has a `notFoundComponent` on the root route
+- `react-router-dom` in data mode: route objects in `src/router.tsx` with `createBrowserRouter([...])`, rendered with `<RouterProvider router={router} />` in `main.tsx`. Don't use `<BrowserRouter>`/`<Routes>` (no loaders) or framework mode (`@react-router/dev`)
+- Use `createHashRouter` when the app is served from static hosting without SPA fallback (e.g. GitHub Pages); otherwise `createBrowserRouter`
+- One module per route in `src/routes/` (`RootLayout.tsx`, `HomePage.tsx`, `WorkspacePage.tsx`, ...) exporting the component and, if needed, its `loader`; layouts render `<Outlet />`
+- Code-split routes with the route's `lazy` property (`lazy: () => import('./routes/WorkspacePage')`), not `React.lazy` + `Suspense`
+- Path constants live in one place (e.g. `paths` in `router.tsx`); build URLs with `generatePath(paths.workspace, { workspaceId })`, never by string concatenation
+- Navigate with `<Link>`/`<NavLink>` (active styling via `NavLink`'s `className` callback) and `useNavigate()`; use `<a>` only for external links
+- Route params from `useParams()` are `string | undefined`: parse them with Zod (or `invariant`-style checks) before use
+- Search params: read with `useSearchParams()` and parse with a Zod schema (`schema.parse(Object.fromEntries(searchParams))`); never trust raw values
+- Route modules stay thin: a `loader` and a component that composes feature components. Business logic stays in features
+- Auth guards in the `loader` of a pathless layout route that wraps protected routes, redirecting with ``throw redirect(`/sign-in?redirect=${encodeURIComponent(url.pathname)}`)`` (`url = new URL(request.url)`)
+- Data loading: prefetch with `queryClient.ensureQueryData(...)` in `loader` (import the shared `queryClient` from `lib/queryClient.ts`) and read with `useQuery`/`useSuspenseQuery` in components; don't read data with `useLoaderData` when it lives in the query cache
+- Mutations go through TanStack Query, not route `action`s
+- Every app has a catch-all `{ path: '*', element: <NotFoundPage /> }` route and an `errorElement` on the root route (read the error with `useRouteError()`)
 
 ## Icons (Lucide)
 
@@ -179,10 +187,10 @@ src/
 - `<form onSubmit>` calls `e.preventDefault()` then `form.handleSubmit()`
 - When a repo has several forms, create shared field components with `createFormHook` in `components/ui/form`
 
-### TanStack Table (v9)
+### TanStack Table
 
 - Use for tabular data with sorting, filtering or pagination; a simple list is a `<ul>`, not a table
-- v9 API: `useTable` + `tableFeatures(...)` + `createColumnHelper<typeof features, TData>()`. Don't use v8 APIs (`useReactTable`, `getCoreRowModel`); read `node_modules/@tanstack/react-table/skills/` (incl. `migrate-v8-to-v9`)
+- The API changed a lot between majors: read `node_modules/@tanstack/react-table/skills/` before writing table code and use the installed version's API, not remembered examples from older versions
 - Register only the features the table uses
 - `columns` defined outside the component or memoized; `data` stable (from a query or memoized)
 - Render semantic `<table>`/`<thead>`/`<tbody>` markup; sortable headers are `<button>`s with `aria-sort` on the `<th>`
@@ -200,16 +208,15 @@ src/
 
 Lint rules live in config, not in prose. Use the templates in this skill's `templates/` folder:
 
-- `templates/eslint.config.js` - flat config: `typescript-eslint` (type-checked), `react-hooks`, `react-refresh`, `jsx-a11y`, `@tanstack/eslint-plugin-query`, `@tanstack/eslint-plugin-router`, `eslint-config-prettier`; relaxed rules for shadcn-generated files and route files
+- `templates/eslint.config.js` - flat config: `typescript-eslint` (type-checked), `react-hooks`, `react-refresh`, `jsx-a11y`, `@tanstack/eslint-plugin-query`, `eslint-config-prettier`; relaxed rules for shadcn-generated files and route modules
 - `templates/.prettierrc.json` - Prettier settings with `prettier-plugin-tailwindcss`
-- `templates/.prettierignore` - ignores the generated `src/routeTree.gen.ts`
 
 When setting up a repo:
 
 1. Copy the templates to the repo root
 2. Install dev dependencies. ESLint is pinned to v9 because `eslint-plugin-jsx-a11y` doesn't support ESLint 10 yet:
    ```
-   npm install -D eslint@^9 @eslint/js@^9 globals typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-jsx-a11y @tanstack/eslint-plugin-query @tanstack/eslint-plugin-router eslint-config-prettier prettier prettier-plugin-tailwindcss
+   npm install -D eslint@^9 @eslint/js@^9 globals typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-jsx-a11y @tanstack/eslint-plugin-query eslint-config-prettier prettier prettier-plugin-tailwindcss
    ```
 3. npm scripts:
    ```json
@@ -230,13 +237,21 @@ Rules for all changes:
 
 Repos that use Claude in GitHub Actions start from the workflow templates in `templates/github-workflows/`:
 
-- `claude.yml` - responds to `@claude` in issues and PRs. Its `--allowedTools` must include every CLI the setup steps need, or Claude gets stuck mid-task: `npm install/remove/ci/run`, `npx eslint`, `npx prettier`, `npx tsc`, `npx vite` (the router plugin generates `routeTree.gen.ts` when Vite runs), `npx tsr`, `npx shadcn`, and `gh pr create`/`gh pr view` so Claude can open the PR itself
+- `claude.yml` - responds to `@claude` in issues and PRs. Its `--allowedTools` must include every CLI the setup steps need, or Claude gets stuck mid-task: `npm install/remove/ci/run`, `npx eslint`, `npx prettier`, `npx tsc`, `npx vite`, `npx shadcn`, and `gh pr create`/`gh pr view` so Claude can open the PR itself
 - `claude-code-review.yml` - reviews PRs with this skill loaded
 - `ci.yml` - typecheck, lint, format check and build on PRs and `main`; skips until `package.json` exists
 
 Copy them to `.github/workflows/` and adjust repo-specific parts (comments, URLs).
 
 When Claude implements an issue in Actions and typecheck, lint, format check and build all pass, it pushes the branch and opens the PR with `gh pr create --base main` (title without the `[Feature]: ` prefix, body starting with `Closes #<issue>`, then summary, verification, what wasn't verified, needed workflow changes). If a check fails or it's blocked, it opens no PR and explains on the issue instead. Put this rule in the repo's `CLAUDE.md` too, since the `@claude` run reads it first. The Claude GitHub App can't edit workflow files, so workflow changes are always made by a person.
+
+## Keeping repos in sync
+
+Existing repos don't change when these conventions change. `CHANGELOG.md` (next to this file) lists each change with what to do in an existing repo.
+
+- Every repo's `CLAUDE.md` has a line `Conventions synced: YYYY-MM-DD`. New projects get today's date
+- When asked to sync or update a repo to the conventions, apply every changelog entry newer than that date, then update the date. A repo without the line hasn't synced yet: compare it with the conventions and ask before large migrations
+- Workflow files (`.github/workflows/`) can't be changed from GitHub Actions; list the needed changes in the PR instead
 
 ## Reviewing React code
 
